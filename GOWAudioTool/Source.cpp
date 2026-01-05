@@ -228,12 +228,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     return 0;
 }
 
-// Pseudocode plan:
-// 1. The error is because WNDCLASSW does not have hIconSm. Only WNDCLASSEXW does.
-// 2. Replace WNDCLASSW with WNDCLASSEXW in WinMain.
-// 3. Set cbSize and hIconSm fields accordingly.
-// 4. RegisterClassExW instead of RegisterClassW.
-
 int WINAPI WinMain(HINSTANCE hI, HINSTANCE, LPSTR, int nC) {
     CoInitializeEx(NULL, COINIT_APARTMENTTHREADED); 
     InitCommonControls();
