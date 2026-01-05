@@ -1,5 +1,3 @@
-# Support Me Here https://ko-fi.com/giorma
-
 # Giorma's God of War Audio Tool
 
 Windows GUI tool for extracting and replacing WEM audio in SBP / BNK files used by God of War–style audio containers.
@@ -35,5 +33,6 @@ Windows GUI tool for extracting and replacing WEM audio in SBP / BNK files used 
 
 ### Programmer: **Giorma**  
 
+<a href='https://ko-fi.com/W7W6TGJDZ' target='_blank'><img height='100' style='border:0px;height:100px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
 
