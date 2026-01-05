@@ -1,4 +1,4 @@
-# GOW Audio Tool
+# Giorma's God of War Audio Tool
 
 Windows GUI tool for extracting and replacing WEM audio in SBP / BNK files used by God of War–style audio containers.
 
