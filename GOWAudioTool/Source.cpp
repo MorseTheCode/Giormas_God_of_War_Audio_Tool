@@ -14,6 +14,7 @@
 #include <fstream>
 #include <algorithm>
 #include <filesystem> 
+#include <cstdint>
 
 namespace fs = std::filesystem;
 #pragma comment(lib, "comctl32.lib")
@@ -32,8 +33,23 @@ HBRUSH hbrWidget = CreateSolidBrush(CLR_WIDGET);
 HBRUSH hbrSelect = CreateSolidBrush(CLR_SELECT);
 HFONT hFontMain;
 
-struct WemEntry { uint32_t id, offset, length; <comment-tag id="1">uint32_t originalLength, didxEntryOffset;</comment-tag id="1"> bool modified = false; };
-struct SbpFile { std::wstring path, name; std::vector<unsigned char> data; std::vector<WemEntry> entries; uint32_t audioBaseOffset; bool dirty = false; };
+struct WemEntry {
+    uint32_t id;
+    uint32_t offset;
+    uint32_t length;
+    uint32_t originalLength;
+    uint32_t didxEntryOffset;
+    bool modified = false;
+};
+
+struct SbpFile {
+    std::wstring path;
+    std::wstring name;
+    std::vector<unsigned char> data;
+    std::vector<WemEntry> entries;
+    uint32_t audioBaseOffset;
+    bool dirty = false;
+};
 
 HWND g_hWnd, g_hTreeView, g_hBtnReplace, g_hBtnExtract, g_hSearchEdit, g_hBtnBatch, g_hInfoLabel, g_hBtnClear, g_hBtnFile, g_hStatus, g_hSearchLabel;
 std::vector<SbpFile*> g_LoadedFiles;
@@ -67,8 +83,8 @@ void InjectWem(SbpFile* sbp, WemEntry* wem, std::wstring path) {
     if (!f.is_open()) return;
     size_t s = f.tellg(); std::vector<unsigned char> n(s); f.seekg(0); f.read((char*)n.data(), s);
     size_t p = sbp->audioBaseOffset + wem->offset;
-    
-    <comment-tag id="2">if (n.size() > wem->originalLength) {
+
+    if (n.size() > wem->originalLength) {
         std::copy(n.begin(), n.begin() + wem->originalLength, sbp->data.begin() + p);
         wem->length = wem->originalLength;
     }
@@ -77,11 +93,11 @@ void InjectWem(SbpFile* sbp, WemEntry* wem, std::wstring path) {
         std::fill(sbp->data.begin() + p + n.size(), sbp->data.begin() + p + wem->originalLength, 0);
         wem->length = (uint32_t)n.size();
     }
-    
+
     // Update length of DIDX inside SBP buffer
-    *(uint32_t*)&sbp->data[wem->didxEntryOffset + 8] = wem->length;</comment-tag id="2">
-    
-    wem->modified = true; sbp->dirty = true;
+    *(uint32_t*)&sbp->data[wem->didxEntryOffset + 8] = wem->length;
+
+        wem->modified = true; sbp->dirty = true;
 }
 
 void ParseSBP(SbpFile* sbp) {
@@ -94,13 +110,13 @@ void ParseSBP(SbpFile* sbp) {
     uint32_t len = *(uint32_t*)&d[std::distance(d.begin(), didx) + 4];
     int cnt = len / 12; size_t curr = std::distance(d.begin(), didx) + 8;
     for (int i = 0; i < cnt; i++) {
-        WemEntry e; 
-        e.id = *(uint32_t*)&d[curr]; 
-        e.offset = *(uint32_t*)&d[curr + 4]; 
+        WemEntry e;
+        e.id = *(uint32_t*)&d[curr];
+        e.offset = *(uint32_t*)&d[curr + 4];
         e.length = *(uint32_t*)&d[curr + 8];
-        <comment-tag id="3">e.originalLength = e.length;
-        e.didxEntryOffset = (uint32_t)curr;</comment-tag id="3">
-        sbp->entries.push_back(e); curr += 12;
+        e.originalLength = e.length;
+        e.didxEntryOffset = (uint32_t)curr;
+            sbp->entries.push_back(e); curr += 12;
     }
 }
 
@@ -209,7 +225,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             if (r != L"") {
                 std::wstring outPath = r + L"\\" + g_SelectedSBP->name;
                 std::ofstream o(outPath, std::ios::binary);
-                o.write((char*)s->data.data(), s->data.size());
+                o.write((char*)g_SelectedSBP->data.data(), g_SelectedSBP->data.size());
                 o.close(); g_SelectedSBP->dirty = false; SetStatus(L"Saved selected SBP.");
             }
         }
@@ -246,7 +262,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 }
 
 int WINAPI WinMain(HINSTANCE hI, HINSTANCE, LPSTR, int nC) {
-    CoInitializeEx(NULL, COINIT_APARTMENTTHREADED); 
+    CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
     InitCommonControls();
 
     // --- LOAD ICON FROM FILE (logo.ico) ---
@@ -264,13 +280,13 @@ int WINAPI WinMain(HINSTANCE hI, HINSTANCE, LPSTR, int nC) {
 
     RegisterClassExW(&wc);
     g_hWnd = CreateWindowW(L"GGOWATool", L"Giorma's GOW Audio Tool", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 620, 560, 0, 0, hI, 0);
-    MSG m; 
-    while (GetMessageW(&m, 0, 0, 0)) { 
-        if (GetKeyState(VK_CONTROL) & 0x8000 && m.message == WM_KEYDOWN && m.wParam == 'F') 
-            SetFocus(g_hSearchEdit); 
-        TranslateMessage(&m); 
-        DispatchMessageW(&m); 
+    MSG m;
+    while (GetMessageW(&m, 0, 0, 0)) {
+        if (GetKeyState(VK_CONTROL) & 0x8000 && m.message == WM_KEYDOWN && m.wParam == 'F')
+            SetFocus(g_hSearchEdit);
+        TranslateMessage(&m);
+        DispatchMessageW(&m);
     }
-    CoUninitialize(); 
+    CoUninitialize();
     return 0;
 }
